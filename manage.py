@@ -1,8 +1,16 @@
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
-import os
 import sys
 
+import os
+
+# Run the below commands once every time I execute the script
+# os.environ.setdefault("DJANGO_SETTINGS_MODULE", "admin_thumbnails.settings")
+
+# import django
+# django.setup()
+
+# from django.core.management import call_command
 
 def main():
     """Run administrative tasks."""

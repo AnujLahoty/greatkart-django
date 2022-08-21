@@ -8,6 +8,7 @@ import json
 from store.models import Product
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
+from django.db.models import Count
 # Create your views here.
 
 def payments(request):
@@ -163,3 +164,55 @@ def order_complete(request):
         return render(request, 'orders/order_complete.html', context)
     except (Payment.DoesNotExist, Order.DoesNotExist):
         return redirect('home')
+
+
+def analytics(request):
+    user = request.user
+    qs_order_product = OrderProduct.objects.all()
+    qs_orders = Order.objects.all()
+    
+    # Count unique users who ordered from this app
+    count_users = Order.objects.all().values('user_id').distinct().count()
+    print(count_users) 
+
+    red_jeans_count = 0
+    blue_jeans_count = 0
+    green_jeans_count = 0
+    
+    red_jeans_query_set = OrderProduct.objects.filter(variations__variation_value='Red').all()
+    for i in red_jeans_query_set.values():
+        print(i)
+        red_jeans_count += i['quantity']
+        
+    blue_jeans_query_set = OrderProduct.objects.filter(variations__variation_value='Blue').all()
+    for i in blue_jeans_query_set.values():
+        print(i)
+        blue_jeans_count += i['quantity']
+        
+    green_jeans_query_set = OrderProduct.objects.filter(variations__variation_value='Green').all()
+    for i in green_jeans_query_set.values():
+        print(i)
+        green_jeans_count += i['quantity']
+    
+    # red_jeans = OrderProduct.objects.filter(variations__variation_value='Red').count()
+    # blue_jeans = OrderProduct.objects.filter(variations__variation_value='Blue').count()
+    # green_jeans = OrderProduct.objects.filter(variations__variation_value='Green').count()
+    
+    print('red_jeans_count ', red_jeans_count)
+    print('blue_jeans_count ', blue_jeans_count)
+    print('green_jeans_count ', green_jeans_count)
+    
+    total_jeans_count = red_jeans_count + blue_jeans_count + green_jeans_count
+    
+    context = {
+            'user': user,
+            'qs_order_product': qs_order_product,
+            'qs_orders': qs_orders,
+            'count_users' : count_users,
+            'red_jeans_count' : red_jeans_count,
+            'blue_jeans_count' : blue_jeans_count,
+            'green_jeans_count' : green_jeans_count,
+            'total_jeans_count' : total_jeans_count,
+            
+        }
+    return render(request, 'orders/analytics.html', context)

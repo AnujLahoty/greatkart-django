@@ -1,0 +1,13 @@
+{% if user.is_staff%}
+
+    <h1>Analytics Tab</h1>
+    <h3>Ordered Products count : {{ total_jeans_count }}</h3>
+    <h3>Ordered count : {{ qs_orders.count }}</h3>
+    <h4>Unique Users : {{ count_users }}</h4>
+
+{% else %}
+
+    <h1>Not Admin</h1>
+
+{% endif %}
+

@@ -2,7 +2,14 @@ from django.db import models
 from accounts.models import Account
 from store.models import Product, Variation
 
+# Models Managers
 
+class OrderManager(models.Manager):
+    def by_range(self, start_date, end_date):
+        if end_date is None:
+            return self.filter(updated_at__gte=start_date)
+        else:
+            return self.filter(updated_at__gte=start_date).filter(updated_at__lte=end_date)
 
 class Payment(models.Model):
     user = models.ForeignKey(Account, on_delete=models.CASCADE)
@@ -44,8 +51,9 @@ class Order(models.Model):
     is_ordered = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-
+    
+    objects = OrderManager()
+    
     def full_name(self):
         return f'{self.first_name} {self.last_name}'
 

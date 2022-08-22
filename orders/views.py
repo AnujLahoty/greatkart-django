@@ -8,7 +8,8 @@ import json
 from store.models import Product
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
-from django.db.models import Count
+from django.db.models import Count, Sum, Avg
+from django.utils import timezone
 # Create your views here.
 
 def payments(request):
@@ -178,31 +179,67 @@ def analytics(request):
     red_jeans_count = 0
     blue_jeans_count = 0
     green_jeans_count = 0
+    total_money_from_orders = 0
     
     red_jeans_query_set = OrderProduct.objects.filter(variations__variation_value='Red').all()
     for i in red_jeans_query_set.values():
-        print(i)
+        # print(i)
         red_jeans_count += i['quantity']
         
     blue_jeans_query_set = OrderProduct.objects.filter(variations__variation_value='Blue').all()
     for i in blue_jeans_query_set.values():
-        print(i)
+        # print(i)
         blue_jeans_count += i['quantity']
         
     green_jeans_query_set = OrderProduct.objects.filter(variations__variation_value='Green').all()
     for i in green_jeans_query_set.values():
-        print(i)
+        # print(i)
         green_jeans_count += i['quantity']
     
     # red_jeans = OrderProduct.objects.filter(variations__variation_value='Red').count()
     # blue_jeans = OrderProduct.objects.filter(variations__variation_value='Blue').count()
     # green_jeans = OrderProduct.objects.filter(variations__variation_value='Green').count()
-    
+    total_money_from_orders_dict = Order.objects.all().aggregate(Sum("order_total"))
+    total_money_from_orders = total_money_from_orders_dict['order_total__sum']
+        
     print('red_jeans_count ', red_jeans_count)
     print('blue_jeans_count ', blue_jeans_count)
     print('green_jeans_count ', green_jeans_count)
     
     total_jeans_count = red_jeans_count + blue_jeans_count + green_jeans_count
+    
+    # filtering the  orders by the date   
+    
+    # Last 3 days orders 
+    last_3_days_date = datetime.datetime.now() - datetime.timedelta(days=3)
+    # print(last_3_days_date)
+    qs_by_last_3_days = Order.objects.all().filter(updated_at__day__gte=last_3_days_date.day)
+    
+
+    
+    if request.method == 'POST':
+            days = request.POST.get('days')
+            print("DAYS are ..................... ", days)
+    days = int(days)
+    # filtering the  orders by the date  dynamically
+    start_date = datetime.datetime.now() - datetime.timedelta(days=days)
+    end_date = datetime.datetime.now() - datetime.timedelta(days=0)
+    qs_by_custom_range = Order.objects.by_range(start_date=start_date, end_date=end_date)
+    print(qs_by_custom_range)
+    # print("The total orders over last " + str(days) + " days are ", qs_by_custom_range.count())
+    
+    number_of_orders = qs_by_custom_range.count()
+    
+    custom_order_total = 0
+    city_orders_track_dict = {}
+    for i in qs_by_custom_range:
+        custom_order_total += i.order_total
+        if i.city in city_orders_track_dict:
+            city_orders_track_dict[i.city] += 1
+        else:
+            city_orders_track_dict[i.city] = 1
+            
+    print("CITY ORDERS TRACK ", city_orders_track_dict)
     
     context = {
             'user': user,
@@ -213,6 +250,11 @@ def analytics(request):
             'blue_jeans_count' : blue_jeans_count,
             'green_jeans_count' : green_jeans_count,
             'total_jeans_count' : total_jeans_count,
+            'total_money_from_orders': total_money_from_orders,
+            'number_of_orders' : number_of_orders,
+            'days' : days,
+            'custom_order_total' : custom_order_total,
+            'city_orders_track_dict' : city_orders_track_dict,
             
         }
     return render(request, 'orders/analytics.html', context)

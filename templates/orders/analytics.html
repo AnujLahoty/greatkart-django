@@ -1,13 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<section class="section-content padding-y bg">
+    <div class="container">
 {% if user.is_staff%}
 
     <h1>Analytics Tab</h1>
     <h3>Ordered Products count : {{ total_jeans_count }}</h3>
-    <h3>Ordered count : {{ qs_orders.count }}</h3>
-    <h4>Unique Users : {{ count_users }}</h4>
+    <h3>Total Orders count : {{ qs_orders.count }}</h3>
+    <h3>Total Money recieved from all orders {{ total_money_from_orders }}</h3>
+    <h3>Unique Users : {{ count_users }}</h3>
+
+    <form action="{% url 'analytics' %}" method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="exampleInputEmail1">Number Of days you want order data for</label>
+          <input type="text" name='days' class="form-control" id="days" aria-describedby="emailHelp" placeholder="Enter Days">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+
+    <h3>Last {{ days }} days number of orders recieved : {{ number_of_orders }}</h3>
+    <h3>Last {{ days }} days total money recieved from orders :{{ custom_order_total }}</h3>
+    <h1>Cities Data</h1>
+
+    {% for i,j in city_orders_track_dict.items %}
+     
+      <h5>{{ i }} : {{ j }}</h5>
+    {% endfor %}
 
 {% else %}
 
     <h1>Not Admin</h1>
 
 {% endif %}
+<div>
+    <canvas id="myChart"></canvas>
+</div>
 
+<script>
+    const labels = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+    ];
+  
+    const data = {
+      labels: labels,
+      datasets: [{
+        label: 'My First dataset',
+        backgroundColor: 'rgb(255, 99, 132)',
+        borderColor: 'rgb(255, 99, 132)',
+        data: [0, 10, 5, 2, 20, 30, 45],
+      }]
+    };
+  
+    const config = {
+      type: 'doughnut',
+      data: data,
+      options: {}
+    };
+  </script>
+
+  <script>
+    const myChart = new Chart(
+      document.getElementById('myChart'),
+      config
+    );
+  </script>
+</div> <!-- container .//  -->
+</section>
+
+
+
+{% endblock %}

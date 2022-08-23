@@ -10,6 +10,10 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.db.models import Count, Sum, Avg
 from django.utils import timezone
+from json import dumps
+import warnings
+
+warnings.filterwarnings("ignore")
 # Create your views here.
 
 def payments(request):
@@ -174,7 +178,7 @@ def analytics(request):
     
     # Count unique users who ordered from this app
     count_users = Order.objects.all().values('user_id').distinct().count()
-    print(count_users) 
+    # print(count_users) 
 
     red_jeans_count = 0
     blue_jeans_count = 0
@@ -202,32 +206,41 @@ def analytics(request):
     total_money_from_orders_dict = Order.objects.all().aggregate(Sum("order_total"))
     total_money_from_orders = total_money_from_orders_dict['order_total__sum']
         
-    print('red_jeans_count ', red_jeans_count)
-    print('blue_jeans_count ', blue_jeans_count)
-    print('green_jeans_count ', green_jeans_count)
+    # print('red_jeans_count ', red_jeans_count)
+    # print('blue_jeans_count ', blue_jeans_count)
+    # print('green_jeans_count ', green_jeans_count)
     
     total_jeans_count = red_jeans_count + blue_jeans_count + green_jeans_count
     
     # filtering the  orders by the date   
     
     # Last 3 days orders 
-    last_3_days_date = datetime.datetime.now() - datetime.timedelta(days=3)
+    # last_3_days_date = datetime.datetime.now() - datetime.timedelta(days=3)
     # print(last_3_days_date)
-    qs_by_last_3_days = Order.objects.all().filter(updated_at__day__gte=last_3_days_date.day)
+    # qs_by_last_3_days = Order.objects.all().filter(updated_at__day__gte=last_3_days_date.day)
     
 
-    
+    days = 0
     if request.method == 'POST':
             days = request.POST.get('days')
-            print("DAYS are ..................... ", days)
+            # print("DAYS are ..................... ", days)
     days = int(days)
     # filtering the  orders by the date  dynamically
     start_date = datetime.datetime.now() - datetime.timedelta(days=days)
     end_date = datetime.datetime.now() - datetime.timedelta(days=0)
     qs_by_custom_range = Order.objects.by_range(start_date=start_date, end_date=end_date)
-    print(qs_by_custom_range)
-    # print("The total orders over last " + str(days) + " days are ", qs_by_custom_range.count())
+    # print(qs_by_custom_range)
     
+    date_labels = []
+    per_order_total_for_last_n_days = []
+    for i in qs_by_custom_range:
+        date_labels.append(i.created_at.date().strftime("%Y/%m/%d"))
+        per_order_total_for_last_n_days.append(int(i.order_total))
+    
+    # for i in date_labels:
+    #     print(type(i))
+    # print("The total orders over last " + str(days) + " days are ", qs_by_custom_range.count())
+    # print("DATE LABELS ", date_labels)
     number_of_orders = qs_by_custom_range.count()
     
     custom_order_total = 0
@@ -239,7 +252,21 @@ def analytics(request):
         else:
             city_orders_track_dict[i.city] = 1
             
-    print("CITY ORDERS TRACK ", city_orders_track_dict)
+    city_name_list = []
+    city_data_list = []
+    
+    for i, j in city_orders_track_dict.items():
+        city_name_list.append(i)
+        city_data_list.append(j)
+            
+    # print("CITY ORDERS TRACK ", city_orders_track_dict)
+    # print("MONEY SPENT ON LAST X ORDERS ", per_order_total_for_last_n_days)
+    
+    # print("CITY NAME LIST", city_name_list)
+    # print("CITY DATA LIST", city_data_list)
+    
+    date_labels_list = date_labels
+    # date_labels_list = json.dumps(date_labels)
     
     context = {
             'user': user,
@@ -255,6 +282,14 @@ def analytics(request):
             'days' : days,
             'custom_order_total' : custom_order_total,
             'city_orders_track_dict' : city_orders_track_dict,
+            'date_labels_list' : date_labels_list,
+            'per_order_total_for_last_n_days' : per_order_total_for_last_n_days,
+            'city_name_list' : city_name_list,
+            'city_data_list' : city_data_list,
             
         }
+    # print("DATE LABELS LIST ", date_labels_list)
     return render(request, 'orders/analytics.html', context)
+
+def dummy_analytics(request):
+    return render(request, 'orders/dummy_analytics.html')

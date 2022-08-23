@@ -13,6 +13,8 @@
     <h3>Total Money recieved from all orders {{ total_money_from_orders }}</h3>
     <h3>Unique Users : {{ count_users }}</h3>
 
+    <!-- <h1>{{ date_labels_list }}</h1> -->
+
     <form action="{% url 'analytics' %}" method="POST">
         {% csrf_token %}
         <div class="form-group">
@@ -31,51 +33,66 @@
       <h5>{{ i }} : {{ j }}</h5>
     {% endfor %}
 
+
+    <div>
+      <canvas id="myChart"></canvas>
+    </div>
+
+<script>
+
+    var days = "{{ days }}"
+
+    var labels_in_js = "{{ date_labels_list|safe }}"
+    const labels = labels_in_js.split(',')
+    labels[0] = labels[0].replace('[', ' ')
+    labels[labels.length - 1] = labels[labels.length - 1].replace(']', ' ')
+
+    var data_obtained = "{{ per_order_total_for_last_n_days|safe }}"
+    var data_final = data_obtained.split(",")
+    data_final[0] = data_final[0].replace('[', ' ')
+    data_final[data_final.length - 1] = data_final[data_final.length - 1].replace(']', ' ')
+
+    console.log(labels_in_js)
+    console.log(data_final)
+
+    const data = {
+      labels: labels,
+      datasets: [{
+        label: 'Sales data',
+        backgroundColor: 'rgb(33, 33, 132)',
+        borderColor: 'rgb(33, 33, 132)',
+        data: data_final,
+      }]
+    };
+  
+    const config = {
+      type: 'line',
+      data: data,
+      options: {
+        responsive: true,
+        plugins: {
+            
+            title: {
+                display: true,
+                text: 'Sales data per order over last days'
+            }
+        }
+    }
+    };
+      const myChart = new Chart(
+      document.getElementById('myChart'),
+      config
+    );
+  </script>
+
+  
+</div> <!-- container .//  -->
+</section>
+
 {% else %}
 
     <h1>Not Admin</h1>
 
 {% endif %}
-<div>
-    <canvas id="myChart"></canvas>
-</div>
-
-<script>
-    const labels = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-    ];
-  
-    const data = {
-      labels: labels,
-      datasets: [{
-        label: 'My First dataset',
-        backgroundColor: 'rgb(255, 99, 132)',
-        borderColor: 'rgb(255, 99, 132)',
-        data: [0, 10, 5, 2, 20, 30, 45],
-      }]
-    };
-  
-    const config = {
-      type: 'doughnut',
-      data: data,
-      options: {}
-    };
-  </script>
-
-  <script>
-    const myChart = new Chart(
-      document.getElementById('myChart'),
-      config
-    );
-  </script>
-</div> <!-- container .//  -->
-</section>
-
-
 
 {% endblock %}

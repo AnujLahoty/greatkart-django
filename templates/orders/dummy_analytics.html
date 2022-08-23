@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class='row my-5'>
+    <div class='col-12'>
+        <h1>Sales Data</h1>
+    </div>
+</div>
+
+<hr/>
+
+<div class='row my-5'>
+    <div class='col'>
+       <canvas class='cfe-render-chart' id="thisWeekSales" data-type='week' width="400" height="400"></canvas>
+    </div>
+</div>
+
+
+<h2>Test</h2>
+
+<script>
+    $(document).ready(function(){
+        function renderChart(id, data, labels){
+            // var ctx = document.getElementById("myChart").getContext('2d');
+            var ctx = $('#' + id)
+                var myChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Sales',
+                            data: data,
+                           backgroundColor: 'rgba(0, 158, 29, 0.45)',
+                            borderColor:'rgba(0, 158, 29, 1)',
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero:true
+                                }
+                            }]
+                        },
+                        backgroundColor: 'rgba(75, 192, 192, 1)'
+                    }
+                });
+        }
+    
+        function getSalesData(id, type){
+            var url = '/dummy_analytics/'
+            var method = 'GET'
+            var data = {"type": type}
+            $.ajax({
+                url: url,
+                method: method,
+                data: data,
+                success: function(responseData){
+                    renderChart(id, responseData.data, responseData.labels)
+                }, error: function(error){
+                    $.alert("An error occurred")
+                }
+            })
+        }
+        var chartsToRender = $('.cfe-render-chart')
+        $.each(chartsToRender, function(index, html){
+            var $this = $(this)
+            if ( $this.attr('id') && $this.attr('data-type')){
+                getSalesData($this.attr('id'), $this.attr('data-type'))
+            }
+            
+        })
+        
+    })
+
+</script>
+
+{% endblock %}

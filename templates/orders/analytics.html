@@ -1,3 +1,4 @@
+
 {% extends 'base.html' %}
 {% load static %}
 
@@ -6,40 +7,77 @@
 <section class="section-content padding-y bg">
     <div class="container">
 {% if user.is_staff%}
-
-    <h1>Analytics Tab</h1>
-    <h3>Ordered Products count : {{ total_jeans_count }}</h3>
+<h1>Analytics Tab</h1>
+<table class="table table-hover table-dark">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Information</th>
+      <th scope="col">Count</th>
+      <th scope="col">Last updated</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row">1</th>
+      <td>Ordered Products count</td>
+      <td>{{ total_jeans_count }}</td>
+      <td>{{ date_current }}</td>
+    </tr>
+    <tr>
+      <th scope="row">2</th>
+      <td>Total Orders count</td>
+      <td>{{ qs_orders.count }}</td>
+      <td>{{ date_current }}</td>
+    </tr>
+    <tr>
+      <th scope="row">3</th>
+      <td>Unique Users</td>
+      <td>{{ count_users }}</td>
+      <td>{{ date_current }}</td>
+    </tr>
+  </tbody>
+</table>
+    
+    <!-- <h3>Ordered Products count : {{ total_jeans_count }}</h3>
     <h3>Total Orders count : {{ qs_orders.count }}</h3>
     <h3>Total Money recieved from all orders {{ total_money_from_orders }}</h3>
     <h3>Unique Users : {{ count_users }}</h3>
+    <h3>{{ date_current }}</h3> -->
 
     <!-- <h1>{{ date_labels_list }}</h1> -->
-
+    <br>
     <form action="{% url 'analytics' %}" method="POST">
         {% csrf_token %}
         <div class="form-group">
           <label for="exampleInputEmail1">Number Of days you want order data for</label>
+          <br>
           <input type="text" name='days' class="form-control" id="days" aria-describedby="emailHelp" placeholder="Enter Days">
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
-
+    <br>
     <h3>Last {{ days }} days number of orders recieved : {{ number_of_orders }}</h3>
     <h3>Last {{ days }} days total money recieved from orders :{{ custom_order_total }}</h3>
-    <h1>Cities Data</h1>
+    <!-- <h1>Cities Data</h1>
 
     {% for i,j in city_orders_track_dict.items %}
      
       <h5>{{ i }} : {{ j }}</h5>
-    {% endfor %}
+    {% endfor %} -->
 
 
     <div>
       <canvas id="myChart"></canvas>
     </div>
 
+    <div>
+      <canvas id="myChart_city"></canvas>
+    </div>
+
 <script>
 
+    // Plot for the saled data over last x days
     var days = "{{ days }}"
 
     var labels_in_js = "{{ date_labels_list|safe }}"
@@ -79,10 +117,52 @@
         }
     }
     };
-      const myChart = new Chart(
-      document.getElementById('myChart'),
-      config
-    );
+
+
+      const myChart = new Chart(document.getElementById('myChart'),config);
+
+    // Plot the chart for City data
+    var city_names = "{{ city_name_list|safe }}";
+    const labels_city = city_names.split(',')
+    labels_city[0] = labels_city[0].replace('[', ' ')
+    labels_city[labels_city.length - 1] = labels_city[labels_city.length - 1].replace(']', ' ')
+
+    var data_obtained_city = "{{ city_data_list|safe }}"
+    var data_final_city = data_obtained_city.split(",")
+    data_final_city[0] = data_final_city[0].replace('[', ' ')
+    data_final_city[data_final_city.length - 1] = data_final_city[data_final_city.length - 1].replace(']', ' ')
+
+    //alert(labels_city)
+    //alert(data_final_city)
+
+    const data_city = {
+      labels: labels_city,
+      datasets: [{
+        label: 'Order data for cities',
+        backgroundColor: 'rgb(33, 33, 132)',
+        borderColor: 'rgb(33, 33, 132)',
+        data: data_final_city,
+      }]
+    };
+  
+    const config_city = {
+      type: 'bar',
+      data: data_city,
+      options: {
+        responsive: true,
+        plugins: {
+            
+            title: {
+                display: true,
+                text: 'Order data for cities over last days'
+            }
+        }
+    }
+    };
+
+
+      const myChart_city = new Chart(document.getElementById('myChart_city'),config_city);
+
   </script>
 
   

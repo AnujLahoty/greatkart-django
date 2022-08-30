@@ -267,7 +267,7 @@ def analytics(request):
     
     date_labels_list = date_labels
     # date_labels_list = json.dumps(date_labels)
-    
+    date_current = str(datetime.datetime.now().date())
     context = {
             'user': user,
             'qs_order_product': qs_order_product,
@@ -286,6 +286,8 @@ def analytics(request):
             'per_order_total_for_last_n_days' : per_order_total_for_last_n_days,
             'city_name_list' : city_name_list,
             'city_data_list' : city_data_list,
+            'date_current' : date_current,
+            
             
         }
     # print("DATE LABELS LIST ", date_labels_list)
